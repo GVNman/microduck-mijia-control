@@ -1,0 +1,64 @@
+# mihomo config template for Microduck (Radxa Zero 3W).
+#
+# Copy to /home/radxa/mihomo-config.yaml and fill in your own proxies.
+# NEVER commit a filled-in copy: proxy server addresses, ports, UUIDs and
+# passwords are credentials. This template contains only placeholders.
+#
+# Install: place the mihomo binary at /home/radxa/mihomo, copy this file
+# to /home/radxa/mihomo-config.yaml, then install mihomo.service and run:
+#   sudo systemctl enable --now mihomo
+# The proxy listens on mixed-port 7890 (127.0.0.1:7890) for HTTP/SOCKS5.
+# Duck services that need the proxy should point at that address.
+
+external-controller: 127.0.0.1:9090
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: warning
+
+# Keep the manual PROXY selection across restarts, so a reboot or a WiFi
+# drop does not silently fall back to another node.
+profile:
+  store-selected: true
+
+proxies:
+  # Example 1: a VLESS node. Replace every YOUR_* value with your own.
+  - name: "YOUR-VLESS-NODE"
+    type: vless
+    server: YOUR_PROXY_SERVER
+    port: YOUR_PROXY_PORT
+    uuid: YOUR_PROXY_UUID
+    udp: true
+    tls: true
+    servername: YOUR_PROXY_SERVER
+    network: tcp
+
+  # Example 2: a Shadowsocks node.
+  - name: "YOUR-SS-NODE"
+    type: ss
+    server: YOUR_PROXY_SERVER
+    port: YOUR_PROXY_PORT
+    cipher: YOUR_SS_CIPHER
+    password: YOUR_SS_PASSWORD
+
+  # Add more nodes the same way. The PROXY group below lists them by name.
+
+proxy-groups:
+  # Manual selection. The first entry is the default.
+  - name: PROXY
+    type: select
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    proxies: ["US", "YOUR-VLESS-NODE", "YOUR-SS-NODE"]
+
+  # Fastest US node, picked automatically by latency test.
+  - name: US
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 100
+    proxies: ["YOUR-VLESS-NODE", "YOUR-SS-NODE"]
+
+rules:
+  - MATCH,PROXY
